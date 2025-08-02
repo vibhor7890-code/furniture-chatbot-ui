@@ -56,15 +56,21 @@ const App = () => {
     try {
       const res = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: fullQuery })
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ query: fullQuery }) // ✅ Backend expects this
       });
 
-      if (!res.ok) throw new Error('Failed to fetch');
+      if (!res.ok) {
+        const errorText = await res.text(); // Capture backend error message
+        throw new Error(`Server Error: ${errorText}`);
+      }
+
       const data = await res.json();
       setBotResponse(data.response);
     } catch (err) {
-      setBotResponse('Error fetching response.');
+      setBotResponse(err.message || 'Error fetching response.');
     }
   };
 
