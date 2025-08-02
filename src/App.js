@@ -7,7 +7,7 @@ const App = () => {
   const supportOptions: Record<string, string[]> = {
     'Order Support': ['Track My Order', 'Cancel My Order', 'View My Order Details'],
     'Product Info': ['Material Details', 'Dimension Queries', 'Assembly Instructions'],
-    'Returns & Refunds': ['Return Policy', 'Refund Status', 'Return A Product']
+    'Returns & Refunds': ['Return Policy', 'Refund Status', 'Return A Product'],
     'Warranty': ['Claim Warranty', 'Warranty Terms'],
     'Installation': ['Schedule Installation', 'Reschedule', 'Installation Status'],
     'Other Queries': ['Store Locator', 'Chat with Agent']
