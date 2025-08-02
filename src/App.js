@@ -37,14 +37,18 @@ const App = () => {
     setChatbotResponse("Fetching response...");
 
     try {
-      const response = await fetch("https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query", {
+      const response = await fetch("https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/docs#/default/query_docs_query_post", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ query })
       });
-
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Backend Error:", errorText);
+        throw new Error("Response not ok");
+      }
       const data = await response.json();
       setChatbotResponse(data.answer || "No response received.");
     } catch (error) {
