@@ -59,11 +59,11 @@ const App = () => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ query: fullQuery }) // ✅ Backend expects this
+        body: JSON.stringify({ question: fullQuery }) // ✅ MUST MATCH FASTAPI
       });
 
       if (!res.ok) {
-        const errorText = await res.text(); // Capture backend error message
+        const errorText = await res.text();
         throw new Error(`Server Error: ${errorText}`);
       }
 
