@@ -37,7 +37,7 @@ const App = () => {
     setChatbotResponse("Fetching response...");
 
     try {
-      const response = await fetch("https://your-backend-url.hf.space/query", {
+      const response = await fetch("https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
