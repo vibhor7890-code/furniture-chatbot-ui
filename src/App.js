@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 
 const App = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
 
   const supportOptions: Record<string, string[]> = {
     'Order Support': ['Track My Order', 'Cancel My Order', 'View My Order Details'],
