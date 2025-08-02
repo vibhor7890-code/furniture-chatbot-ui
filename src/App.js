@@ -4,7 +4,7 @@ const App = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
 
-  const supportOptions: Record<string, string[]> = {
+  const supportOptions = {
     'Order Support': ['Track My Order', 'Cancel My Order', 'View My Order Details'],
     'Product Info': ['Material Details', 'Dimension Queries', 'Assembly Instructions'],
     'Returns & Refunds': ['Return Policy', 'Refund Status', 'Return A Product'],
@@ -13,94 +13,51 @@ const App = () => {
     'Other Queries': ['Store Locator', 'Chat with Agent']
   };
 
-  const handleCategoryClick = (category: string) => {
+  const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     setSelectedSubcategory(null);
   };
 
-  const handleSubcategoryClick = (subcategory: string) => {
+  const handleSubcategoryClick = (subcategory) => {
     setSelectedSubcategory(subcategory);
-    // Here you can trigger an API call or chatbot backend query
-    console.log('Selected:', selectedCategory, '>', subcategory);
+    alert(`You selected: ${subcategory}`);
+    // Later we will send this to the backend as a query.
   };
 
   return (
     <div style={{ padding: 20, fontFamily: 'Arial' }}>
       <h2>👋 Welcome to WoodenStreet Support</h2>
-
-      {!selectedCategory ? (
-        <>
-          <h4>Please select a support category:</h4>
+      {!selectedCategory && (
+        <div>
+          <h4>Select a Support Category:</h4>
           {Object.keys(supportOptions).map((category) => (
             <button
               key={category}
               onClick={() => handleCategoryClick(category)}
-              style={{
-                margin: 8,
-                padding: '10px 20px',
-                fontSize: '16px',
-                borderRadius: '10px',
-                border: '1px solid #aaa'
-              }}
+              style={{ margin: 8, padding: 10 }}
             >
               {category}
             </button>
           ))}
-        </>
-      ) : !selectedSubcategory ? (
-        <>
-          <h4>{selectedCategory} options:</h4>
-          {supportOptions[selectedCategory].map((option) => (
+        </div>
+      )}
+
+      {selectedCategory && (
+        <div>
+          <h4>{selectedCategory} Options:</h4>
+          {supportOptions[selectedCategory].map((subcategory) => (
             <button
-              key={option}
-              onClick={() => handleSubcategoryClick(option)}
-              style={{
-                margin: 8,
-                padding: '10px 20px',
-                fontSize: '16px',
-                borderRadius: '10px',
-                border: '1px solid #aaa'
-              }}
+              key={subcategory}
+              onClick={() => handleSubcategoryClick(subcategory)}
+              style={{ margin: 8, padding: 10 }}
             >
-              {option}
+              {subcategory}
             </button>
           ))}
-          <br />
-          <button
-            onClick={() => setSelectedCategory(null)}
-            style={{
-              marginTop: 20,
-              background: '#eee',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontSize: '14px'
-            }}
-          >
-            ⬅ Back
-          </button>
-        </>
-      ) : (
-        <>
-          <h4>✅ You selected:</h4>
-          <p>
-            <strong>{selectedCategory} → {selectedSubcategory}</strong>
-          </p>
-          <button
-            onClick={() => {
-              setSelectedCategory(null);
-              setSelectedSubcategory(null);
-            }}
-            style={{
-              marginTop: 20,
-              background: '#eee',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              fontSize: '14px'
-            }}
-          >
-            🔄 Start Over
-          </button>
-        </>
+          <div style={{ marginTop: 20 }}>
+            <button onClick={() => setSelectedCategory(null)}>⬅ Back</button>
+          </div>
+        </div>
       )}
     </div>
   );
