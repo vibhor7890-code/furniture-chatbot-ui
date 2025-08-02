@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import './App.css';
 
 const App = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [orderId, setOrderId] = useState('');
-  const [chatbotResponse, setChatbotResponse] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [botResponse, setBotResponse] = useState('');
 
   const supportOptions = {
     'Order Support': ['Track My Order', 'Cancel My Order', 'View My Order Details'],
@@ -15,143 +15,111 @@ const App = () => {
     'Installation': ['Schedule Installation', 'Reschedule', 'Installation Status'],
     'Other Queries': ['Store Locator', 'Chat with Agent']
   };
-  const subcategoryQueryMap: Record<string, string> = {
-    'Track My Order': 'Where is my order?',
-    'Cancel My Order': 'I want to cancel my order',
-    'View My Order Details': 'Show my order details',
+
+  const subcategoryQueryMap = {
+    'Track My Order': 'Please tell me the status of my order. Order ID: ',
+    'Cancel My Order': 'Cancel my order. Order ID: ',
+    'View My Order Details': 'Show my order details. Order ID: ',
     'Material Details': 'Tell me about the product material',
     'Dimension Queries': 'What are the product dimensions?',
     'Assembly Instructions': 'How do I assemble this product?',
     'Return Policy': 'What is the return policy?',
     'Refund Status': 'What is the status of my refund?',
-    'Return A Product': 'How do I return a product?',
-    'Claim Warranty': 'I want to claim my warranty',
+    'Return A Product': 'I want to return a product',
+    'Claim Warranty': 'I want to claim warranty. Order ID: ',
     'Warranty Terms': 'What are the warranty terms?',
-    'Schedule Installation': 'Schedule an installation for my product',
-    'Reschedule': 'I want to reschedule my installation',
-    'Installation Status': 'Check my installation status',
+    'Schedule Installation': 'Schedule installation for my order. Order ID: ',
+    'Reschedule': 'Reschedule my installation. Order ID: ',
+    'Installation Status': 'Check installation status. Order ID: ',
     'Store Locator': 'Where is the nearest WoodenStreet store?',
     'Chat with Agent': 'Connect me with a human agent'
   };
+
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     setSelectedSubcategory(null);
+    setBotResponse('');
     setOrderId('');
-    setChatbotResponse('');
   };
-  const handleSubcategoryClick = async (subcategory: string) => {
-  setSelectedSubcategory(subcategory);
-  const query = subcategoryQueryMap[subcategory] || subcategory;
-  const res = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ query })
-  });
 
-  if (res.ok) {
-    const data = await res.json();
-    setBotResponse(data.response);
-  } else {
-    setBotResponse('Error fetching response.');
-  }
-};
-  // const handleSubcategoryClick = (subcategory) => {
-  //   setSelectedSubcategory(subcategory);
-  //   setOrderId('');
-  //   setChatbotResponse('');
-  // };
+  const handleSubcategoryClick = (subcategory) => {
+    setSelectedSubcategory(subcategory);
+    setBotResponse('');
+    setOrderId('');
+    const requiresOrderId = subcategoryQueryMap[subcategory]?.includes('Order ID:');
+    if (!requiresOrderId) {
+      submitQuery(subcategoryQueryMap[subcategory]);
+    }
+  };
 
-  const handleAskQuery = async () => {
-    const prompt = `${selectedSubcategory}. Order ID: ${orderId}`;
-    setLoading(true);
+  const submitQuery = async (fullQuery) => {
     try {
-      const response = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
+      const res = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: prompt })
+        body: JSON.stringify({ query: fullQuery })
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error from backend:', errorText);
-        throw new Error('Response not OK');
-      }
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      setBotResponse(data.response);
+    } catch (err) {
+      setBotResponse('Error fetching response.');
+    }
+  };
 
-      const data = await response.json();
-      setChatbotResponse(data.answer || 'No answer returned.');
-    } catch (error) {
-      console.error('Fetch Error:', error);
-      setChatbotResponse('❌ Error fetching response.');
-    } finally {
-      setLoading(false);
+  const handleSubmit = () => {
+    const baseQuery = subcategoryQueryMap[selectedSubcategory];
+    if (baseQuery.includes('Order ID:')) {
+      const fullQuery = `${baseQuery}${orderId}`;
+      submitQuery(fullQuery);
     }
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+    <div className="App">
       <h2>🪑 WoodenStreet Customer Support</h2>
 
-      {!selectedCategory && (
+      {!selectedCategory ? (
         <>
-          <h3>Select a Support Category:</h3>
+          <h3>Select a category:</h3>
           {Object.keys(supportOptions).map((category) => (
-            <button key={category} onClick={() => handleCategoryClick(category)} style={{ margin: '5px' }}>
-              {category}
-            </button>
+            <button key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
           ))}
         </>
-      )}
-
-      {selectedCategory && !selectedSubcategory && (
+      ) : !selectedSubcategory ? (
         <>
-          <h3>{selectedCategory}</h3>
+          <h3>{selectedCategory} Options:</h3>
           {supportOptions[selectedCategory].map((subcategory) => (
-            <button key={subcategory} onClick={() => handleSubcategoryClick(subcategory)} style={{ margin: '5px' }}>
-              {subcategory}
-            </button>
+            <button key={subcategory} onClick={() => handleSubcategoryClick(subcategory)}>{subcategory}</button>
           ))}
-          <div style={{ marginTop: '10px' }}>
-            <button onClick={() => setSelectedCategory(null)}>⬅️ Back</button>
-          </div>
+          <br />
+          <button onClick={() => setSelectedCategory(null)}>🔙 Back</button>
         </>
-      )}
-
-      {selectedSubcategory && (
+      ) : (
         <>
-          <h4>🔍 {selectedCategory} > {selectedSubcategory}</h4>
-
-          {(selectedSubcategory.toLowerCase().includes('order') ||
-            selectedSubcategory.toLowerCase().includes('refund') ||
-            selectedSubcategory.toLowerCase().includes('status')) && (
-            <div style={{ marginTop: '10px' }}>
-              <label>Enter Order ID: </label>
+          <h3>{selectedSubcategory}</h3>
+          {subcategoryQueryMap[selectedSubcategory]?.includes('Order ID:') && (
+            <>
               <input
                 type="text"
+                placeholder="Enter your Order ID"
                 value={orderId}
                 onChange={(e) => setOrderId(e.target.value)}
-                placeholder="e.g. ORD57413"
               />
-            </div>
+              <button onClick={handleSubmit}>Submit</button>
+            </>
           )}
-
-          <div style={{ marginTop: '10px' }}>
-            <button onClick={handleAskQuery} disabled={loading || (orderId === '' && selectedSubcategory.toLowerCase().includes('order'))}>
-              {loading ? 'Asking...' : 'Ask Support Bot'}
-            </button>
-            <button onClick={() => setSelectedSubcategory(null)} style={{ marginLeft: '10px' }}>
-              ⬅️ Back
-            </button>
-          </div>
-
-          {chatbotResponse && (
-            <div style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-              <h4>🧠 Chatbot Response:</h4>
-              <p>{chatbotResponse}</p>
-            </div>
-          )}
+          <br />
+          <button onClick={() => setSelectedSubcategory(null)}>🔙 Back</button>
         </>
+      )}
+
+      {botResponse && (
+        <div className="response-box">
+          <h4>🧠 Chatbot Response:</h4>
+          <p>{botResponse}</p>
+        </div>
       )}
     </div>
   );
