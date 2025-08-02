@@ -15,19 +15,53 @@ const App = () => {
     'Installation': ['Schedule Installation', 'Reschedule', 'Installation Status'],
     'Other Queries': ['Store Locator', 'Chat with Agent']
   };
-
+  const subcategoryQueryMap: Record<string, string> = {
+    'Track My Order': 'Where is my order?',
+    'Cancel My Order': 'I want to cancel my order',
+    'View My Order Details': 'Show my order details',
+    'Material Details': 'Tell me about the product material',
+    'Dimension Queries': 'What are the product dimensions?',
+    'Assembly Instructions': 'How do I assemble this product?',
+    'Return Policy': 'What is the return policy?',
+    'Refund Status': 'What is the status of my refund?',
+    'Return A Product': 'How do I return a product?',
+    'Claim Warranty': 'I want to claim my warranty',
+    'Warranty Terms': 'What are the warranty terms?',
+    'Schedule Installation': 'Schedule an installation for my product',
+    'Reschedule': 'I want to reschedule my installation',
+    'Installation Status': 'Check my installation status',
+    'Store Locator': 'Where is the nearest WoodenStreet store?',
+    'Chat with Agent': 'Connect me with a human agent'
+  };
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
     setSelectedSubcategory(null);
     setOrderId('');
     setChatbotResponse('');
   };
+  const handleSubcategoryClick = async (subcategory: string) => {
+  setSelectedSubcategory(subcategory);
+  const query = subcategoryQueryMap[subcategory] || subcategory;
+  const res = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query })
+  });
 
-  const handleSubcategoryClick = (subcategory) => {
-    setSelectedSubcategory(subcategory);
-    setOrderId('');
-    setChatbotResponse('');
-  };
+  if (res.ok) {
+    const data = await res.json();
+    setBotResponse(data.response);
+  } else {
+    setBotResponse('Error fetching response.');
+  }
+};
+  // const handleSubcategoryClick = (subcategory) => {
+  //   setSelectedSubcategory(subcategory);
+  //   setOrderId('');
+  //   setChatbotResponse('');
+  // };
 
   const handleAskQuery = async () => {
     const prompt = `${selectedSubcategory}. Order ID: ${orderId}`;
