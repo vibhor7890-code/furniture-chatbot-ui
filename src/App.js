@@ -56,7 +56,7 @@ const App = () => {
       }
 
       const data = await res.json();
-      setBotResponse(data.response);
+      setBotResponse(data.answer);
     } catch (err) {
       setBotResponse(err.message || 'Error fetching response.');
     } finally {
