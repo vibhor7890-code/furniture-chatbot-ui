@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import './App.css';
 
 const App = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [orderId, setOrderId] = useState('');
   const [botResponse, setBotResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const supportOptions = {
     'Order Support': ['Track My Order', 'Cancel My Order', 'View My Order Details'],
@@ -14,25 +14,6 @@ const App = () => {
     'Warranty': ['Claim Warranty', 'Warranty Terms'],
     'Installation': ['Schedule Installation', 'Reschedule', 'Installation Status'],
     'Other Queries': ['Store Locator', 'Chat with Agent']
-  };
-
-  const subcategoryQueryMap = {
-    'Track My Order': 'Please tell me the status of my order. Order ID: ',
-    'Cancel My Order': 'Cancel my order. Order ID: ',
-    'View My Order Details': 'Show my order details. Order ID: ',
-    'Material Details': 'Tell me about the product material',
-    'Dimension Queries': 'What are the product dimensions?',
-    'Assembly Instructions': 'How do I assemble this product?',
-    'Return Policy': 'What is the return policy?',
-    'Refund Status': 'What is the status of my refund?',
-    'Return A Product': 'I want to return a product',
-    'Claim Warranty': 'I want to claim warranty. Order ID: ',
-    'Warranty Terms': 'What are the warranty terms?',
-    'Schedule Installation': 'Schedule installation for my order. Order ID: ',
-    'Reschedule': 'Reschedule my installation. Order ID: ',
-    'Installation Status': 'Check installation status. Order ID: ',
-    'Store Locator': 'Where is the nearest WoodenStreet store?',
-    'Chat with Agent': 'Connect me with a human agent'
   };
 
   const handleCategoryClick = (category) => {
@@ -45,21 +26,28 @@ const App = () => {
   const handleSubcategoryClick = (subcategory) => {
     setSelectedSubcategory(subcategory);
     setBotResponse('');
-    setOrderId('');
-    const requiresOrderId = subcategoryQueryMap[subcategory]?.includes('Order ID:');
-    if (!requiresOrderId) {
-      submitQuery(subcategoryQueryMap[subcategory]);
-    }
+
+    // If it’s an order-related query, wait for order ID input
+    if (subcategory.toLowerCase().includes('order')) return;
+
+    submitQuery(subcategory);
   };
 
-  const submitQuery = async (fullQuery) => {
+  const submitQuery = async (subcategoryQuery) => {
+    let fullQuery = subcategoryQuery;
+    if (subcategoryQuery.toLowerCase().includes('order') && orderId) {
+      fullQuery += ` for Order ID: ${orderId}`;
+    }
+
+    setIsLoading(true);
+
     try {
       const res = await fetch('https://c2bda09f-cc56-4a84-8654-b9b4dd5877ae-00-2k3ax47d18h9f.sisko.replit.dev/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ question: fullQuery }) // ✅ MUST MATCH FASTAPI
+        body: JSON.stringify({ question: fullQuery })
       });
 
       if (!res.ok) {
@@ -71,59 +59,64 @@ const App = () => {
       setBotResponse(data.response);
     } catch (err) {
       setBotResponse(err.message || 'Error fetching response.');
-    }
-  };
-
-  const handleSubmit = () => {
-    const baseQuery = subcategoryQueryMap[selectedSubcategory];
-    if (baseQuery.includes('Order ID:')) {
-      const fullQuery = `${baseQuery}${orderId}`;
-      submitQuery(fullQuery);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="App">
+    <div style={{ fontFamily: 'sans-serif', padding: 20, maxWidth: 600, margin: 'auto' }}>
       <h2>🪑 WoodenStreet Customer Support</h2>
 
-      {!selectedCategory ? (
+      {!selectedCategory && (
         <>
-          <h3>Select a category:</h3>
-          {Object.keys(supportOptions).map((category) => (
-            <button key={category} onClick={() => handleCategoryClick(category)}>{category}</button>
+          <h4>Select a support category:</h4>
+          {Object.keys(supportOptions).map((cat) => (
+            <button key={cat} onClick={() => handleCategoryClick(cat)} style={{ margin: 5 }}>
+              {cat}
+            </button>
           ))}
-        </>
-      ) : !selectedSubcategory ? (
-        <>
-          <h3>{selectedCategory} Options:</h3>
-          {supportOptions[selectedCategory].map((subcategory) => (
-            <button key={subcategory} onClick={() => handleSubcategoryClick(subcategory)}>{subcategory}</button>
-          ))}
-          <br />
-          <button onClick={() => setSelectedCategory(null)}>🔙 Back</button>
-        </>
-      ) : (
-        <>
-          <h3>{selectedSubcategory}</h3>
-          {subcategoryQueryMap[selectedSubcategory]?.includes('Order ID:') && (
-            <>
-              <input
-                type="text"
-                placeholder="Enter your Order ID"
-                value={orderId}
-                onChange={(e) => setOrderId(e.target.value)}
-              />
-              <button onClick={handleSubmit}>Submit</button>
-            </>
-          )}
-          <br />
-          <button onClick={() => setSelectedSubcategory(null)}>🔙 Back</button>
         </>
       )}
 
+      {selectedCategory && !selectedSubcategory && (
+        <>
+          <h4>{selectedCategory}</h4>
+          {supportOptions[selectedCategory].map((sub) => (
+            <button key={sub} onClick={() => handleSubcategoryClick(sub)} style={{ margin: 5 }}>
+              {sub}
+            </button>
+          ))}
+          <div style={{ marginTop: 10 }}>
+            <button onClick={() => setSelectedCategory(null)}>⬅ Back</button>
+          </div>
+        </>
+      )}
+
+      {selectedSubcategory && selectedSubcategory.toLowerCase().includes('order') && (
+        <div style={{ marginTop: 20 }}>
+          <label>Enter Order ID:</label>
+          <input
+            type="text"
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
+            placeholder="e.g., WS123456"
+            style={{ marginLeft: 10 }}
+          />
+          <button
+            onClick={() => submitQuery(selectedSubcategory)}
+            style={{ marginLeft: 10 }}
+            disabled={!orderId}
+          >
+            Submit
+          </button>
+        </div>
+      )}
+
+      {isLoading && <p>⏳ Loading chatbot response...</p>}
       {botResponse && (
-        <div className="response-box">
-          <h4>🧠 Chatbot Response:</h4>
+        <div style={{ marginTop: 20, background: '#f9f9f9', padding: 15, borderRadius: 5 }}>
+          <strong>🧠 Chatbot Response:</strong>
           <p>{botResponse}</p>
         </div>
       )}
